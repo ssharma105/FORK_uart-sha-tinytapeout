@@ -30,6 +30,7 @@
 
         # tb / sim
         pkgs-stdenv.verilator
+        gtkwave
 
         # program
         dfu-util

@@ -17,7 +17,6 @@
 /* "is_last" == 0 means byte number is 4, no matter what value "byte_num" is. */
 /* if "in_ready" == 0, then "is_last" should be 0. */
 /* the user switch to next "in" only if "ack" == 1. */
-`timescale 1ns / 1ps
 
 module padder (
     input var clk,

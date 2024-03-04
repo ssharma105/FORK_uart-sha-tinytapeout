@@ -15,8 +15,6 @@
  */
 
 /* round constant */
-`timescale 1ns / 1ps
-
 module rconst (
     input var [23:0] i,
     output var reg [63:0] rc

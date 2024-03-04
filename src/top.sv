@@ -1,4 +1,4 @@
-`default_nettype none `timescale 1ns / 1ps
+`default_nettype none `timescale 100ns / 100ns
 
 typedef enum logic [7:0] {
     IDLE,
@@ -8,7 +8,7 @@ typedef enum logic [7:0] {
     READ_3,
     BUSY,
     PROCESS
-} STATE;
+} State;
 
 module top (
     input var clk,
@@ -81,8 +81,8 @@ module top (
         .out_valid
     );
 
-    STATE state = IDLE;
-    STATE state_n;
+    State state = IDLE;
+    State state_n;
 
     reg [31:0] length = 0;
     reg [31:0] length_n;
@@ -125,12 +125,14 @@ module top (
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
+                state_n = READ_0;
             end
 
             READ_0: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
                     data_in_n[31:24] = rx_axis_tdata;
+                    state_n = READ_1;
                 end else begin
                     rx_axis_tready_n = 1;
                 end
@@ -140,6 +142,7 @@ module top (
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
                     data_in_n[23:16] = rx_axis_tdata;
+                    state_n = READ_2;
                 end else begin
                     rx_axis_tready_n = 1;
                 end
@@ -148,7 +151,8 @@ module top (
             READ_2: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
-                    data_in_n[15:8]  = rx_axis_tdata;
+                    data_in_n[15:8] = rx_axis_tdata;
+                    state_n = READ_3;
                 end else begin
                     rx_axis_tready_n = 1;
                 end
@@ -157,7 +161,8 @@ module top (
             READ_3: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
-                    data_in_n[7:0]   = rx_axis_tdata;
+                    data_in_n[7:0] = rx_axis_tdata;
+                    state_n = PROCESS;
                 end else begin
                     rx_axis_tready_n = 1;
                 end

@@ -18,8 +18,6 @@
 /* if "in_ready" == 0, then "is_last" should be 0. */
 /* the user switch to next "in" only if "ack" == 1. */
 
-`timescale 1ns / 1ps
-
 `define low_pos(w, b) ((w)*64 + (b)*8)
 `define low_pos2(w, b) `low_pos(w,7-b)
 `define high_pos(w, b) (`low_pos(w,b) + 7)

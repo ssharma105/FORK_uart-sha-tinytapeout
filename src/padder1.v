@@ -22,8 +22,6 @@
  * 0x11223344      3    0x11223301
  */
 
-`timescale 1ns / 1ps
-
 module padder1 (
     input var [31:0] in,
     input var [1:0] byte_num,

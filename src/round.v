@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-`timescale 1ns / 1ps
 
 `define low_pos(x, y) `high_pos(x,y) - 63
 `define high_pos(x, y) 1599 - 64*(5*y+x)

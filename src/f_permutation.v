@@ -16,8 +16,6 @@
 
 /* if "ack" is 1, then current input has been used. */
 
-`timescale 1ns / 1ps
-
 module f_permutation (
     input var clk,
     input var reset,
