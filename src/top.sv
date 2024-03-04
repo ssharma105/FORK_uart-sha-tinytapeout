@@ -60,28 +60,6 @@ module top (
     );
     assign uo_out[7:1] = '0;
 
-    reg start = 0;
-    reg start_n;
-    reg [31:0] data_in = 0;
-    reg [31:0] data_in_n;
-    reg data_last;
-    reg data_last_n;
-    reg data_valid;
-    reg data_valid_n;
-    wire data_in_ready;
-    wire [511:0] hash;
-    wire out_valid;
-    sha sha_inst (
-        .clk_i(uclk),
-        .rst_i(rst),
-        .start,
-        .data_in,
-        .data_last,
-        .data_valid,
-        .data_in_ready,
-        .hash,
-        .out_valid
-    );
 
     State state = IDLE;
     State state_n;
@@ -96,23 +74,12 @@ module top (
             rx_axis_tready <= 0;
             tx_axis_tdata <= 0;
             tx_axis_tvalid <= 0;
-            start <= 0;
-            data_in <= 0;
-            data_last <= 0;
-            data_valid <= 0;
-            length <= 0;
             state <= IDLE;
         end else begin
             state <= state_n;
             rx_axis_tready <= rx_axis_tready_n;
             tx_axis_tdata <= tx_axis_tdata_n;
             tx_axis_tvalid <= tx_axis_tvalid_n;
-            start <= start_n;
-            data_in <= data_in_n;
-            data_last <= data_last_n;
-            data_valid <= data_valid_n;
-            length <= length_n;
-            start_flag <= start_flag_n;
         end
     end
 
@@ -121,12 +88,6 @@ module top (
         rx_axis_tready_n = rx_axis_tready;
         tx_axis_tdata_n = tx_axis_tdata;
         tx_axis_tvalid_n = tx_axis_tvalid;
-        start_n = start;
-        data_in_n = data_in;
-        data_last_n = data_last;
-        data_valid_n = data_valid;
-        length_n = length;
-        start_flag_n = start_flag;
 
         case (state)
             IDLE: begin
@@ -178,51 +139,12 @@ module top (
             end
 
             PROCESS: begin
-                if (length == 0 && ~start_flag) begin
-                    length_n = data_in - 1;
-                    start_flag_n = 1;
-                    start_n = 1;
-                    state_n = IDLE;
-                end else if (length == 0 && start_flag) begin
-                    data_valid_n = 1;
-                    data_last_n = 1;
-                    state_n = BUSY;
-                end else begin
-                    if (data_in_ready) begin
-                        data_valid_n = 1;
-                        length_n = length - 1;
-                        state_n = IDLE;
-                    end else begin
-                        state_n = PROCESS;
-                    end
-                end
             end
 
             BUSY: begin
-                data_valid_n = 0;
-                data_last_n  = 0;
-
-                if (out_valid) begin
-                    state_n  = SEND_OUT;
-                    length_n = 64;  // reuse length registers here.
-                end else begin
-                    state_n = BUSY;
-                end
             end
 
             SEND_OUT: begin
-                if (tx_axis_tready && !tx_axis_tvalid) begin
-                    tx_axis_tdata_n = hash[(length*8)-1-:8];
-                    tx_axis_tvalid_n = 1;
-                    length_n = length - 1;
-                end else begin
-                    tx_axis_tvalid_n = 0;
-                end
-
-                if (length == 0) begin
-                    state_n = IDLE;
-                    start_flag_n = 0;
-                end
             end
 
             default: state_n = IDLE;
