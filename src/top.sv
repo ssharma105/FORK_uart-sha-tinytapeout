@@ -88,7 +88,8 @@ module top (
 
     reg [31:0] length = 0;
     reg [31:0] length_n;
-    reg start_flag; reg start_flag_n;
+    reg start_flag;
+    reg start_flag_n;
 
     always_ff @(posedge uclk) begin
         if (rst) begin
@@ -126,7 +127,7 @@ module top (
         data_valid_n = data_valid;
         length_n = length;
         start_flag_n = start_flag;
-        
+
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
@@ -199,23 +200,22 @@ module top (
 
             BUSY: begin
                 data_valid_n = 0;
-                data_last_n = 0;
+                data_last_n  = 0;
 
                 if (out_valid) begin
-                    $display("OUTPUT HASH AVAILABLE");
-                    state_n = SEND_OUT;
-                    length_n = 64; // reuse length registers here.
+                    state_n  = SEND_OUT;
+                    length_n = 64;  // reuse length registers here.
                 end else begin
                     state_n = BUSY;
                 end
             end
 
             SEND_OUT: begin
-                if(tx_axis_tready) begin
+                if (tx_axis_tready && !tx_axis_tvalid) begin
                     tx_axis_tdata_n = hash[(length*8)-1-:8];
                     tx_axis_tvalid_n = 1;
                     length_n = length - 1;
-                end else begin  
+                end else begin
                     tx_axis_tvalid_n = 0;
                 end
 

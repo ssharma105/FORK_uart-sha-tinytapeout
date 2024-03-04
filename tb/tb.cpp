@@ -2,7 +2,83 @@
 
 #include "Vtop.h"
 
+#include <format>
+#include <iomanip>
+#include <iostream>
+#include <optional>
+
 #include <verilated_vcd_c.h>
+
+template <typename... Args>
+void println(std::format_string<Args...> str, Args&&... args) {
+    std::cout << std::format(str, std::forward<Args>(args)...) << '\n';
+}
+
+u32 sim_time = 0;
+
+class byte_reader {
+    enum class state : u8 { start, data, stop };
+    u32 start_time;
+    state s = state::start;
+    u8 bit = 0;
+    u8 val = 0;
+
+    static constexpr u32 steps_per_bit = 16;
+
+   public:
+    auto resume(const Vtop& dut) -> std::optional<u8> {
+        switch (s) {
+            case state::start:
+                if (!(dut.uo_out & 1)) {
+                    s = state::data;
+                    bit = 0;
+                    val = 0;
+                    start_time = sim_time;
+                }
+                return {};
+            case state::data:
+                if (sim_time < start_time + (bit + 1) * steps_per_bit) {
+                    return {};
+                }
+                val = dut.uo_out << 7 | val >> 1;
+                bit++;
+                if (bit >= 8) {
+                    s = state::stop;
+                }
+                return {};
+            case state::stop:
+                if (sim_time < start_time + 10 * steps_per_bit) {
+                    return {};
+                }
+                // stop bit should be set
+                assert(dut.uo_out & 1);
+                s = state::start;
+                return val;
+        }
+    }
+};
+
+class read_tb {
+    byte_reader r;
+    u32 last_read_pos = -1;
+
+    static constexpr u32 timeout = 16 * 10 * 2;
+
+   public:
+    // returns true when timeout
+    auto resume(const Vtop& dut) -> bool {
+        if (auto b = r.resume(dut)) {
+            println("===== data: 0x{:02X} =====", *b);
+            last_read_pos = sim_time;
+        }
+
+        if (last_read_pos != -1 && sim_time - last_read_pos > timeout) {
+            return true;
+        }
+
+        return false;
+    }
+};
 
 struct input {
     bool prescale;
@@ -50,8 +126,10 @@ auto main() -> int {
     dut.trace(&trace, 5);
     trace.open(waveform_file);
 
-    auto sim_time = 0;
-    auto step = [&](u32 n = 1) {
+    read_tb r;
+
+    auto step = [&](u32 n = 1) -> bool {
+        auto timeout = false;
         for (auto _ = 0; _ < n; ++_) {
             dut.clk ^= 1;
             dut.eval();
@@ -59,7 +137,10 @@ auto main() -> int {
             dut.clk ^= 1;
             dut.eval();
             trace.dump(sim_time++);
+            timeout |= r.resume(dut);
         }
+
+        return timeout;
     };
 
     auto def = input{
@@ -77,20 +158,22 @@ auto main() -> int {
 
     step(20);
 
+    auto send_word = [&](u32 word) {
+        send_byte(step, dut, (word >> 24) & 0xff);
+        send_byte(step, dut, (word >> 16) & 0xff);
+        send_byte(step, dut, (word >> 8) & 0xff);
+        send_byte(step, dut, (word >> 0) & 0xff);
+    };
+
     // send length
-    send_byte(step, dut, 0x00);
-    send_byte(step, dut, 0x00);
-    send_byte(step, dut, 0x00);
-    send_byte(step, dut, 0x02);
+    send_word(0x0000'0002);
     step(100);
-    send_byte(step, dut, 0x11);
-    send_byte(step, dut, 0x11);
-    send_byte(step, dut, 0x11);
-    send_byte(step, dut, 0x11);
-    step(100);    
-    send_byte(step, dut, 0x22);
-    send_byte(step, dut, 0x22);
-    send_byte(step, dut, 0x22);
-    send_byte(step, dut, 0x22);
-    step(400);
+
+    // data
+    send_word(0x1111'1111);
+    step(100);
+    send_word(0x2222'2222);
+    step(100);
+
+    while (!step()) {}
 }
