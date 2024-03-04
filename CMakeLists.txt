@@ -12,4 +12,17 @@ add_executable(run_tb tb/tb.cpp)
 verilate(run_tb COVERAGE TRACE
   INCLUDE_DIRS "../make_tracing_c"
   VERILATOR_ARGS -x-assign fast
-  SOURCES src/top.sv src/second.sv)
+  TOP_MODULE top
+  SOURCES
+    src/f_permutation.v
+    src/keccak.v
+    src/padder.v
+    src/padder1.v
+    src/rconst.v
+    src/round.v
+    src/sha.sv
+    src/top.sv
+    src/uart.v
+    src/uart_rx.v
+    src/uart_tx.v
+)

@@ -1,12 +1,13 @@
 `default_nettype none
 
-typedef enum logic {
+typedef enum logic [7:0] {
     IDLE,
     READ_0,
     READ_1,
     READ_2,
     READ_3,
-    BUSY
+    BUSY,
+    PROCESS
 } STATE;
 
 module top (
@@ -14,10 +15,7 @@ module top (
     input var [7:0] ui_in,
     output var [7:0] uo_out
 );
-    second ensure_second_file ();
-    assign uo_out = ui_in;
-
-    reg [15:0] prescale = 16'd165;
+    reg [15:0] prescale = ui_in[4] ? 16'd1 : 16'd165;
 
     wire rst = ui_in[7];
     wire clk_select = ui_in[6];
@@ -26,35 +24,38 @@ module top (
     // RX UART Data Signals
     wire [7:0] rx_axis_tdata;
     wire rx_axis_tvalid;
-    reg rx_axis_tready = 0;
-    reg rx_axis_tready_next;
+    reg rx_axis_tready, rx_axis_tready_n;
+    wire rx_busy, overrun_error, frame_error;
 
     uart_rx RX (
         .clk(uclk),
         .rst,
-        .rxd(ui_in[1]),
+        .rxd(ui_in[0]),
         .m_axis_tdata(rx_axis_tdata),
         .m_axis_tvalid(rx_axis_tvalid),
         .m_axis_tready(rx_axis_tready),
-        .prescale
+        .prescale,
+        .busy(rx_busy),
+        .overrun_error,
+        .frame_error
     );
 
 
     // TX UART Data Signals
-    reg [7:0] tx_axis_tdata;
-    reg [7:0] tx_axis_tdata_n;
-    reg tx_axis_tvalid;
-    reg tx_axis_tvalid_n;
+    reg [7:0] tx_axis_tdata, tx_axis_tdata_n;
+    reg tx_axis_tvalid, tx_axis_tvalid_n;
     wire tx_axis_tready;
+    wire tx_busy;
 
     uart_tx TX (
         .clk(uclk),
         .rst,
-        .txd(ui_in[0]),
+        .txd(uo_out[0]),
         .s_axis_tdata(tx_axis_tdata),
         .s_axis_tvalid(tx_axis_tvalid),
         .s_axis_tready(tx_axis_tready),
-        .prescale
+        .prescale,
+        .busy(tx_busy)
     );
 
     reg start = 0;
@@ -149,7 +150,7 @@ module top (
                     rx_axis_tready_n = 0;
                     data_in_n[15:8]  = rx_axis_tdata;
                 end else begin
-                    rx_axis_tready = 1;
+                    rx_axis_tready_n = 1;
                 end
             end
 
@@ -158,7 +159,7 @@ module top (
                     rx_axis_tready_n = 0;
                     data_in_n[7:0]   = rx_axis_tdata;
                 end else begin
-                    rx_axis_tready = 1;
+                    rx_axis_tready_n = 1;
                 end
             end
 
@@ -175,12 +176,7 @@ module top (
                 end
             end
 
-
             default: state_n = IDLE;
         endcase
-
-
     end
-
-
 endmodule

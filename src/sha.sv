@@ -59,12 +59,12 @@ module sha (
     );
 
 
-    reg [ 31:0] sha_in_n = 0;
-    reg         sha_is_last_n = 0;
-    reg         sha_in_ready_n = 0;
-    reg         out_valid_n = 0;
-    reg [  1:0] sha_byte_num_n = 0;
-    reg [511:0] hash_n = 0;
+    reg [ 31:0] sha_in_n;
+    reg         sha_is_last_n;
+    reg         sha_in_ready_n;
+    reg         out_valid_n;
+    reg [  1:0] sha_byte_num_n;
+    reg [511:0] hash_n;
 
     enum {
         SHA_START,
