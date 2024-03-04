@@ -70,40 +70,40 @@ module uart #(
 
 );
 
-  uart_tx #(
-      .DATA_WIDTH(DATA_WIDTH)
-  ) uart_tx_inst (
-      .clk(clk),
-      .rst(rst),
-      // axi input
-      .s_axis_tdata(s_axis_tdata),
-      .s_axis_tvalid(s_axis_tvalid),
-      .s_axis_tready(s_axis_tready),
-      // output
-      .txd(txd),
-      // status
-      .busy(tx_busy),
-      // configuration
-      .prescale(prescale)
-  );
+    uart_tx #(
+        .DATA_WIDTH(DATA_WIDTH)
+    ) uart_tx_inst (
+        .clk(clk),
+        .rst(rst),
+        // axi input
+        .s_axis_tdata(s_axis_tdata),
+        .s_axis_tvalid(s_axis_tvalid),
+        .s_axis_tready(s_axis_tready),
+        // output
+        .txd(txd),
+        // status
+        .busy(tx_busy),
+        // configuration
+        .prescale(prescale)
+    );
 
-  uart_rx #(
-      .DATA_WIDTH(DATA_WIDTH)
-  ) uart_rx_inst (
-      .clk(clk),
-      .rst(rst),
-      // axi output
-      .m_axis_tdata(m_axis_tdata),
-      .m_axis_tvalid(m_axis_tvalid),
-      .m_axis_tready(m_axis_tready),
-      // input
-      .rxd(rxd),
-      // status
-      .busy(rx_busy),
-      .overrun_error(rx_overrun_error),
-      .frame_error(rx_frame_error),
-      // configuration
-      .prescale(prescale)
-  );
+    uart_rx #(
+        .DATA_WIDTH(DATA_WIDTH)
+    ) uart_rx_inst (
+        .clk(clk),
+        .rst(rst),
+        // axi output
+        .m_axis_tdata(m_axis_tdata),
+        .m_axis_tvalid(m_axis_tvalid),
+        .m_axis_tready(m_axis_tready),
+        // input
+        .rxd(rxd),
+        // status
+        .busy(rx_busy),
+        .overrun_error(rx_overrun_error),
+        .frame_error(rx_frame_error),
+        // configuration
+        .prescale(prescale)
+    );
 
 endmodule

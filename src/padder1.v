@@ -29,11 +29,11 @@ module padder1 (
     input var [1:0] byte_num,
     output var reg [31:0] out
 );
-  always_comb
-    case (byte_num)
-      0: out = 32'h6000000;
-      1: out = {in[31:24], 24'h060000};
-      2: out = {in[31:16], 16'h0600};
-      3: out = {in[31:8], 8'h06};
-    endcase
+    always_comb
+        case (byte_num)
+            0: out = 32'h6000000;
+            1: out = {in[31:24], 24'h060000};
+            2: out = {in[31:16], 16'h0600};
+            3: out = {in[31:8], 8'h06};
+        endcase
 endmodule
