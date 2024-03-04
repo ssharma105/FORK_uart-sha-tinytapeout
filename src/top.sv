@@ -131,7 +131,9 @@ module top (
             IDLE: begin
                 rx_axis_tready_n = 1;
                 data_valid_n = 0;
+                data_last_n = 0;
                 state_n = READ_0;
+                start_n = 0;
             end
 
             READ_0: begin
@@ -176,8 +178,10 @@ module top (
 
             PROCESS: begin
                 if (length == 0 && ~start_flag) begin
-                    length_n = data_in;
+                    length_n = data_in - 1;
                     start_flag_n = 1;
+                    start_n = 1;
+                    state_n = IDLE;
                 end else if (length == 0 && start_flag) begin
                     data_valid_n = 1;
                     data_last_n = 1;
@@ -217,10 +221,10 @@ module top (
 
                 if (length == 0) begin
                     state_n = IDLE;
-                end 
+                    start_flag_n = 0;
+                end
             end
 
-            
             default: state_n = IDLE;
         endcase
     end
