@@ -41,7 +41,6 @@ void send_byte(auto&& step, Vtop& dut, u8 data) {
 }
 
 auto main() -> int {
-    const auto max_sim_time = 1000;
     const auto waveform_file = "build/waveform.vcd";
 
     auto dut = Vtop{};
@@ -52,7 +51,6 @@ auto main() -> int {
     trace.open(waveform_file);
 
     auto sim_time = 0;
-
     auto step = [&](u32 n = 1) {
         for (auto _ = 0; _ < n; ++_) {
             dut.clk ^= 1;

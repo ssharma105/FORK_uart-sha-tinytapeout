@@ -58,6 +58,7 @@ module top (
         .prescale,
         .busy(tx_busy)
     );
+    assign uo_out[7:1] = '0;
 
     reg start = 0;
     reg start_n;

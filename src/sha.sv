@@ -101,6 +101,7 @@ module sha (
         sha_byte_num_n = sha_byte_num;
         out_valid_n = out_valid;
         hash_n = hash;
+        nextsubchunk = 0;
 
         case (state)
             SHA_START: begin
@@ -108,7 +109,6 @@ module sha (
                 sha_is_last_n = 0;
                 sha_byte_num_n = 0;
                 nextstate = SHA_FEED;
-                nextsubchunk = 0;
                 out_valid_n = 0;
             end
 

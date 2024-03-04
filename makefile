@@ -17,7 +17,7 @@ FREQ    := 10
 USB_VENDOR  ?= 1d50
 USB_PRODUCT ?= 6146
 
-SOURCES     := $(shell find $(SRC)/ -type f -name '*.sv')
+SOURCES     := $(shell find $(SRC)/ -type f -name '*.sv' -or -name '*.v')
 
 CXXFLAGS += -std=c++23
 
@@ -82,7 +82,7 @@ $(BUILD)/user_config.tcl: $(SOURCES) | $(BUILD)/
 	cat <<- EOF > $@
 		set ::env(DESIGN_NAME) "$(TOP)"
 		set ::env(VERILOG_FILES) "$(SOURCES:%=/work/%)"
-		set ::env(DIE_AREA) "0 0 508.76 225.76"
+		set ::env(DIE_AREA) "0 0 161.00 111.52"
 		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/3x2_pg.def"
 	EOF
 
