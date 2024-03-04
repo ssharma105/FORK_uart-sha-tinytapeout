@@ -2,4 +2,6 @@
 .env
 build/
 .venv/
+.DS_Store
 runs
+*.swp
