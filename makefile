@@ -8,7 +8,6 @@ SRC     := src
 RSC     := rsc
 TB      := tb
 BUILD   := build
-RUNS    := runs
 SEED    := 10
 DEVICE  := up5k
 PIN_DEF := $(RSC)/tt3_asic_sim.pcf
@@ -18,9 +17,7 @@ FREQ    := 10
 USB_VENDOR  ?= 1d50
 USB_PRODUCT ?= 6146
 
-SOURCES     := $(BUILD)/top.sv
-TLV_SOURCES := $(shell find $(SRC) -type f -name '*.tlv' -and -not -name 'top.tlv')
-TB_SOURCES  := $(shell fd '.*\.cpp' $(TB))
+SOURCES     := $(shell find $(SRC)/ -type f -name '*.sv')
 
 CXXFLAGS += -std=c++23
 
@@ -31,8 +28,6 @@ endif
 
 .PHONY: build prog clean gds
 .PRECIOUS: $(BUILD)/%.json $(BUILD)/%.asc $(BUILD)/%.log $(BUILD)/%.sv
-
-gen: $(SOURCES)
 
 build: $(BUILD)/$(TOP).bin
 
@@ -74,9 +69,6 @@ $(BUILD)/%.asc: $(BUILD)/%.json | $(BUILD)/
 $(BUILD)/%.bin: $(BUILD)/%.asc | $(BUILD)/
 	icepack $< $@
 
-$(BUILD)/top.sv: $(SRC)/top.tlv $(TLV_SOURCES) | $(BUILD)/
-	cd $(BUILD) && sandpiper-saas --iArgs -i ../$< -o $(notdir $@) $(if $(TLV_SOURCES),-f $(TLV_SOURCES:%=../%))
-
 PDK := sky130A
 
 # 1x1: "0 0 161.00 111.52"
@@ -86,10 +78,10 @@ PDK := sky130A
 # 4x2: "0 0 682.64 225.76"
 # 6x2: "0 0 1030.40 225.76"
 # 8x2: "0 0 1378.16 225.76"
-$(BUILD)/user_config.tcl: | $(BUILD)/
+$(BUILD)/user_config.tcl: $(SOURCES) | $(BUILD)/
 	cat <<- EOF > $@
 		set ::env(DESIGN_NAME) "$(TOP)"
-		set ::env(VERILOG_FILES) "/work/$(BUILD)/top.sv"
+		set ::env(VERILOG_FILES) "$(SOURCES:%=/work/%)"
 		set ::env(DIE_AREA) "0 0 508.76 225.76"
 		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/3x2_pg.def"
 	EOF
@@ -97,9 +89,9 @@ $(BUILD)/user_config.tcl: | $(BUILD)/
 $(BUILD)/config.tcl: $(RSC)/config.tcl | $(BUILD)/
 	cp $< $@
 
-gds: runs/latest/results/final/gds/$(TOP).gds
+gds: $(BUILD)/latest/results/final/gds/$(TOP).gds
 
-runs/latest/results/final/gds/$(TOP).gds: $(BUILD)/user_config.tcl $(BUILD)/config.tcl $(SOURCES)
+$(BUILD)/latest/results/final/gds/$(TOP).gds: $(BUILD)/user_config.tcl $(BUILD)/config.tcl $(SOURCES)
 	docker run --rm \
 		-v $(OPENLANE_ROOT):/openlane \
 		-v $(PDK_ROOT):/pdk \
@@ -109,5 +101,5 @@ runs/latest/results/final/gds/$(TOP).gds: $(BUILD)/user_config.tcl $(BUILD)/conf
 		-u `id -u $$USER`:`id -g $$USER` \
 		$(OPENLANE_IMAGE_NAME) \
 		/bin/bash -c \
-		"./flow.tcl -overwrite -design /work/$(BUILD) -run_path /work/$(RUNS) -tag latest"
+		"./flow.tcl -overwrite -design /work/$(BUILD) -run_path /work/$(BUILD) -tag latest"
 
