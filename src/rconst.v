@@ -18,12 +18,9 @@
 `timescale 1ns / 1ps
 
 module rconst (
-    i,
-    rc
+    input var [23:0] i,
+    output var reg [63:0] rc
 );
-  input [23:0] i;
-  output reg [63:0] rc;
-
   always @(i) begin
     rc = 0;
     rc[0] = i[0] | i[4] | i[5] | i[6] | i[7] | i[10] | i[12] | i[13] | i[14] | i[15] | i[20] | i[22];

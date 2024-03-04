@@ -15,15 +15,15 @@
 
 module sha (
     //Interface
-    input clk_i,
-    input rst_i,
-    input start,
-    input [31:0] data_in,
-    input data_last,
-    input data_valid,
-    output logic data_in_ready,
-    output logic [511:0] hash,
-    output reg out_valid
+    input var clk_i,
+    input var rst_i,
+    input var start,
+    input var [31:0] data_in,
+    input var data_last,
+    input var data_valid,
+    output var data_in_ready,
+    output var [511:0] hash,
+    output var reg out_valid
 );
 
   //Vars

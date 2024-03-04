@@ -25,15 +25,11 @@
 `timescale 1ns / 1ps
 
 module padder1 (
-    in,
-    byte_num,
-    out
+    input var [31:0] in,
+    input var [1:0] byte_num,
+    output var reg [31:0] out
 );
-  input [31:0] in;
-  input [1:0] byte_num;
-  output reg [31:0] out;
-
-  always @(*)
+  always_comb
     case (byte_num)
       0: out = 32'h6000000;
       1: out = {in[31:24], 24'h060000};

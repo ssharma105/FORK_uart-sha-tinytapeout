@@ -20,26 +20,17 @@
 `timescale 1ns / 1ps
 
 module padder (
-    clk,
-    reset,
-    in,
-    in_ready,
-    is_last,
-    byte_num,
-    buffer_full,
-    out,
-    out_ready,
-    f_ack
+    input var clk,
+    input var reset,
+    input var [31:0] in,
+    input var in_ready,
+    input var is_last,
+    input var [1:0] byte_num,
+    output var buffer_full,
+    output var reg [575:0] out,
+    output var out_ready,
+    input var f_ack
 );
-  input clk, reset;
-  input [31:0] in;
-  input in_ready, is_last;
-  input [1:0] byte_num;
-  output buffer_full;  /* to "user" module */
-  output reg [575:0] out;  /* to "f_permutation" module */
-  output out_ready;  /* to "f_permutation" module */
-  input f_ack;  /* from "f_permutation" module */
-
   reg state;  /* state == 0: user will send more input data
                                      * state == 1: user will not send any data */
   reg done;  /* == 1: out_ready should be 0 */

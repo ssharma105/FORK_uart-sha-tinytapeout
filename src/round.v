@@ -24,14 +24,10 @@
 `define rot_up_1(in) {in[62:0], in[63]}
 
 module round (
-    in,
-    round_const,
-    out
+    input var  [1599:0] in,
+    input var  [  63:0] round_const,
+    output var [1599:0] out
 );
-  input [1599:0] in;
-  input [63:0] round_const;
-  output [1599:0] out;
-
   wire [63:0] a[4:0] [4:0];
   wire [63:0] b[4:0];
   wire [63:0] c[4:0][4:0], d[4:0][4:0], e[4:0][4:0], f[4:0][4:0], g[4:0][4:0];

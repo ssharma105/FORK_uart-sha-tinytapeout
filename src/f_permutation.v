@@ -19,21 +19,14 @@
 `timescale 1ns / 1ps
 
 module f_permutation (
-    clk,
-    reset,
-    in,
-    in_ready,
-    ack,
-    out,
-    out_ready
+    input var clk,
+    input var reset,
+    input var [575:0] in,
+    input var in_ready,
+    output var ack,
+    output var reg [1599:0] out,
+    output var reg out_ready
 );
-  input clk, reset;
-  input [575:0] in;
-  input in_ready;
-  output ack;
-  output reg [1599:0] out;
-  output reg out_ready;
-
   reg [22:0] i;  /* select round constant */
   wire [1599:0] round_in, round_out;
   wire [63:0] rc;  /* round constant */

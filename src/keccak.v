@@ -26,24 +26,16 @@
 `define high_pos2(w, b) (`low_pos2(w,b) + 7)
 
 module keccak (
-    clk,
-    reset,
-    in,
-    in_ready,
-    is_last,
-    byte_num,
-    buffer_full,
-    out,
-    out_ready
+    input var clk,
+    input var reset,
+    input var [31:0] in,
+    input var in_ready,
+    input var is_last,
+    input var [1:0] byte_num,
+    output var buffer_full,
+    output var [511:0] out,
+    output var reg out_ready
 );
-  input clk, reset;
-  input [31:0] in;
-  input in_ready, is_last;
-  input [1:0] byte_num;
-  output buffer_full;  /* to "user" module */
-  output [511:0] out;
-  output reg out_ready;
-
   reg state;  /* state == 0: user will send more input data
                                    * state == 1: user will not send any data */
   wire [575:0] padder_out, padder_out_1;  /* before reorder byte */
