@@ -2,17 +2,14 @@
 
 #include "Vtop.h"
 
-#include <format>
 #include <iomanip>
 #include <iostream>
 #include <optional>
 
 #include <verilated_vcd_c.h>
 
-template <typename... Args>
-void println(std::format_string<Args...> str, Args&&... args) {
-    std::cout << std::format(str, std::forward<Args>(args)...) << '\n';
-}
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 u32 sim_time = 0;
 
@@ -68,7 +65,7 @@ class read_tb {
     // returns true when timeout
     auto resume(const Vtop& dut) -> bool {
         if (auto b = r.resume(dut)) {
-            println("===== data: 0x{:02X} =====", *b);
+            fmt::println("===== data: 0x{:02X} =====", *b);
             last_read_pos = sim_time;
         }
 
