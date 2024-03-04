@@ -92,16 +92,12 @@ module top (
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
-                data_valid_n = 0;
-                data_last_n = 0;
                 state_n = READ_0;
-                start_n = 0;
             end
 
             READ_0: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
-                    data_in_n[31:24] = rx_axis_tdata;
                     state_n = READ_1;
                 end else begin
                     rx_axis_tready_n = 1;
@@ -111,7 +107,6 @@ module top (
             READ_1: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
-                    data_in_n[23:16] = rx_axis_tdata;
                     state_n = READ_2;
                 end else begin
                     rx_axis_tready_n = 1;
@@ -121,7 +116,6 @@ module top (
             READ_2: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
-                    data_in_n[15:8] = rx_axis_tdata;
                     state_n = READ_3;
                 end else begin
                     rx_axis_tready_n = 1;
@@ -131,7 +125,6 @@ module top (
             READ_3: begin
                 if (rx_axis_tvalid) begin
                     rx_axis_tready_n = 0;
-                    data_in_n[7:0] = rx_axis_tdata;
                     state_n = PROCESS;
                 end else begin
                     rx_axis_tready_n = 1;
