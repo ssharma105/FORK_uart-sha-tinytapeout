@@ -7,7 +7,8 @@ typedef enum logic [7:0] {
     READ_2,
     READ_3,
     BUSY,
-    PROCESS
+    PROCESS,
+    SEND_OUT
 } State;
 
 module top (
@@ -86,6 +87,7 @@ module top (
 
     reg [31:0] length = 0;
     reg [31:0] length_n;
+    reg start_flag; reg start_flag_n;
 
     always_ff @(posedge uclk) begin
         if (rst) begin
@@ -108,6 +110,7 @@ module top (
             data_last <= data_last_n;
             data_valid <= data_valid_n;
             length <= length_n;
+            start_flag <= start_flag_n;
         end
     end
 
@@ -121,10 +124,12 @@ module top (
         data_last_n = data_last;
         data_valid_n = data_valid;
         length_n = length;
-
+        start_flag_n = start_flag;
+        
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
+                data_valid_n = 0;
                 state_n = READ_0;
             end
 
@@ -169,11 +174,17 @@ module top (
             end
 
             PROCESS: begin
-                if (length == 0) begin
+                if (length == 0 && ~start_flag) begin
                     length_n = data_in;
+                    start_flag_n = 1;
+                end else if (length == 0 && start_flag) begin
+                    data_valid_n = 1;
+                    data_last_n = 1;
+                    state_n = BUSY;
                 end else begin
                     if (data_in_ready) begin
                         data_valid_n = 1;
+                        length_n = length - 1;
                         state_n = IDLE;
                     end else begin
                         state_n = PROCESS;
@@ -181,6 +192,34 @@ module top (
                 end
             end
 
+            BUSY: begin
+                data_valid_n = 0;
+                data_last_n = 0;
+
+                if (out_valid) begin
+                    $display("OUTPUT HASH AVAILABLE");
+                    state_n = SEND_OUT;
+                    length_n = 64; // reuse length registers here.
+                end else begin
+                    state_n = BUSY;
+                end
+            end
+
+            SEND_OUT: begin
+                if(tx_axis_tready) begin
+                    tx_axis_tdata_n = hash[(length*8)-1-:8];
+                    tx_axis_tvalid_n = 1;
+                    length_n = length - 1;
+                end else begin  
+                    tx_axis_tvalid_n = 0;
+                end
+
+                if (length == 0) begin
+                    state_n = IDLE;
+                end 
+            end
+
+            
             default: state_n = IDLE;
         endcase
     end

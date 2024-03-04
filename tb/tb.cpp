@@ -83,7 +83,16 @@ auto main() -> int {
     send_byte(step, dut, 0x00);
     send_byte(step, dut, 0x00);
     send_byte(step, dut, 0x00);
-    send_byte(step, dut, 0x10);
-
-    step(20);
+    send_byte(step, dut, 0x02);
+    step(100);
+    send_byte(step, dut, 0x11);
+    send_byte(step, dut, 0x11);
+    send_byte(step, dut, 0x11);
+    send_byte(step, dut, 0x11);
+    step(100);    
+    send_byte(step, dut, 0x22);
+    send_byte(step, dut, 0x22);
+    send_byte(step, dut, 0x22);
+    send_byte(step, dut, 0x22);
+    step(400);
 }
