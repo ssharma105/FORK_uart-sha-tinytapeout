@@ -63,62 +63,56 @@ module top (
     );
     assign uo_out[7:1] = '0;
 
-    reg load_i; reg load_i_n;
-    reg new_text_i; reg new_text_i_n;
+    reg load_i;
+    reg load_i_n;
+    reg newtext_i;
+    reg newtext_i_n;
     wire ready_o;
-    reg [127:0] data_i; reg [127:0] data_i_n;
+    reg [127:0] data_i;
+    reg [127:0] data_i_n;
     wire [127:0] data_o;
 
-    reg [127:0] data_o_capture; reg[127:0] data_o_capture_n;
-    
-    md5 md5_inst(
-        clk,
+    reg [127:0] data_o_capture;
+    reg [127:0] data_o_capture_n;
+
+    md5 md5_inst (
+        .clk,
         .reset(~rst),
-        load_i,
-        ready_o,
-        new_text_i,
-        data_i,
-        data_o
+        .load_i,
+        .ready_o,
+        .newtext_i,
+        .data_i,
+        .data_o
     );
-            
-        
+
+
 
     State state = IDLE;
     State state_n;
 
     reg [7:0] length = 0;
     reg [7:0] length_n;
-    reg [7:0] total; reg[7:0] total_n;
+    reg [7:0] total;
+    reg [7:0] total_n;
     reg start_flag;
     reg start_flag_n;
-    
-    always_ff @(posedge uclk) begin
-        if (rst) begin
-            rx_axis_tready <= 0;
-            tx_axis_tdata <= 0;
-            tx_axis_tvalid <= 0;
-            state <= IDLE;
-            load_i <= 0;
-            new_text_i <= 0;
-            data_i <= 0;
-            length <= 0;
-            total <= 0;
-            start_flag <= 0;
-            data_o_capture <= 0;
-        end else begin
-            state <= state_n;
-            rx_axis_tready <= rx_axis_tready_n;
-            tx_axis_tdata <= tx_axis_tdata_n;
-            tx_axis_tvalid <= tx_axis_tvalid_n;
-            load_i <= load_i_n;
-            new_text_i <= new_text_i_n;
-            data_i <= data_i_n;
-            length <= length_n;
-            total <= total_n;
-            start_flag <= start_flag_n;
-            data_o_capture <= data_o_capture_n;
-        end
-    end
+
+    `define reset(var, val = '0) \
+        always_ff @(posedge uclk) \
+            if (rst) var <= val; \
+            else var <= var``_n;
+
+    `reset(rx_axis_tready);
+    `reset(tx_axis_tdata);
+    `reset(tx_axis_tvalid);
+    `reset(state, IDLE);
+    `reset(load_i);
+    `reset(newtext_i);
+    `reset(data_i);
+    `reset(length);
+    `reset(total);
+    `reset(start_flag);
+    `reset(data_o_capture);
 
     always_comb begin
         state_n = state;
@@ -126,40 +120,39 @@ module top (
         tx_axis_tdata_n = tx_axis_tdata;
         tx_axis_tvalid_n = tx_axis_tvalid;
         data_i_n = data_i;
-        new_text_i_n = new_text_i;
+        newtext_i_n = newtext_i;
         load_i_n = load_i;
-        length_n = length;     
+        length_n = length;
         total_n = total;
         data_o_capture_n = data_o_capture;
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
-                length_n = 8'd16; 
+                length_n = 8'd16;
                 state_n = READ_0;
             end
 
             READ_0: begin
-                if(total == 0) begin
+                if (total == 0) begin
                     total_n = rx_axis_tdata;
                     state_n = IDLE;
-                end
-                else if(length > 0) begin
+                end else if (length > 0) begin
                     if (rx_axis_tvalid) begin
                         rx_axis_tready_n = 0;
                         data_i_n[(length*8)-1-:8] = rx_axis_tdata;
                         length_n = length - 1;
                     end
-                end else if (length == 0) begin 
-                    state_n = PROCESS_0;
+                end else if (length == 0) begin
+                    state_n  = PROCESS_0;
                     load_i_n = 1;
-                    total_n = total - 1;
-                end 
+                    total_n  = total - 1;
+                end
             end
-            
+
             PROCESS_0: begin
                 load_i_n = 0;
-                if(total == 0) begin 
-                    state_n = BUSY;
+                if (total == 0) begin
+                    state_n  = BUSY;
                     length_n = 16;
                 end else begin
                     state_n = READ_0;
@@ -168,23 +161,23 @@ module top (
             end
 
             BUSY: begin
-                if(ready_o) begin 
+                if (ready_o) begin
                     state_n = SEND_OUT;
                     data_o_capture_n = data_o;
-                end 
+                end
             end
 
             SEND_OUT: begin
-                if(tx_axis_tready && length > 0) begin 
+                if (tx_axis_tready && length > 0) begin
                     tx_axis_tdata_n = data_o_capture[(length*8)-1-:8];
                     tx_axis_tvalid_n = 1;
                     length_n = length - 1;
-                end else if (length == 0 ) begin 
+                end else if (length == 0) begin
                     tx_axis_tvalid_n = 0;
                     state_n = IDLE;
                 end else begin
                     tx_axis_tvalid_n = 0;
-                end 
+                end
             end
 
             default: state_n = IDLE;

@@ -49,28 +49,17 @@
 
 
 module md5 (
-    clk,
-    reset,
-    load_i,
-    ready_o,
-    newtext_i,
-    data_i,
-    data_o
+    input var clk,
+    input var reset,
+    input var load_i,
+    output var reg ready_o,
+    input var newtext_i,
+    // Input must be padded and in little endian mode
+    input var [127:0] data_i,
+    output var reg [127:0] data_o
 );
-
-    input clk;
-    input reset;
-    input load_i;
-    output ready_o;
-    input newtext_i;
-
-
-    //Input must be padded and in little endian mode
-    input [127:0] data_i;
-    output [127:0] data_o;
-
-    reg ready_o, next_ready_o;
-    reg [127:0] data_o, next_data_o;
+    reg next_ready_o;
+    reg [127:0] next_data_o;
 
     reg [5:0] round64, next_round64;
     reg [43:0] t;
