@@ -68,6 +68,8 @@ module top (
     wire ready_o;
     reg [127:0] data_i; reg [127:0] data_i_n;
     wire [127:0] data_o;
+
+    reg [127:0] data_o_capture; reg[127:0] data_o_capture_n;
     
     md5 md5_inst(
         clk,
@@ -79,7 +81,7 @@ module top (
         data_o
     );
             
-    
+        
 
     State state = IDLE;
     State state_n;
@@ -89,7 +91,7 @@ module top (
     reg [7:0] total; reg[7:0] total_n;
     reg start_flag;
     reg start_flag_n;
-
+    
     always_ff @(posedge uclk) begin
         if (rst) begin
             rx_axis_tready <= 0;
@@ -101,6 +103,8 @@ module top (
             data_i <= 0;
             length <= 0;
             total <= 0;
+            start_flag <= 0;
+            data_o_capture <= 0;
         end else begin
             state <= state_n;
             rx_axis_tready <= rx_axis_tready_n;
@@ -111,6 +115,8 @@ module top (
             data_i <= data_i_n;
             length <= length_n;
             total <= total_n;
+            start_flag <= start_flag_n;
+            data_o_capture <= data_o_capture_n;
         end
     end
 
@@ -124,6 +130,7 @@ module top (
         load_i_n = load_i;
         length_n = length;     
         total_n = total;
+        data_o_capture_n = data_o_capture;
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
@@ -152,17 +159,32 @@ module top (
             PROCESS_0: begin
                 load_i_n = 0;
                 if(total == 0) begin 
-                    state_n = PROCESS_1;
+                    state_n = BUSY;
+                    length_n = 16;
                 end else begin
-                    state_n = IDLE;
+                    state_n = READ_0;
+                    rx_axis_tready_n = 1;
                 end
             end
 
             BUSY: begin
-                load_i_n=0;
+                if(ready_o) begin 
+                    state_n = SEND_OUT;
+                    data_o_capture_n = data_o;
+                end 
             end
 
             SEND_OUT: begin
+                if(tx_axis_tready && length > 0) begin 
+                    tx_axis_tdata_n = data_o_capture[(length*8)-1-:8];
+                    tx_axis_tvalid_n = 1;
+                    length_n = length - 1;
+                end else if (length == 0 ) begin 
+                    tx_axis_tvalid_n = 0;
+                    state_n = IDLE;
+                end else begin
+                    tx_axis_tvalid_n = 0;
+                end 
             end
 
             default: state_n = IDLE;
