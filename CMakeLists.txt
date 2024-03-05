@@ -30,14 +30,7 @@ verilate(
   TOP_MODULE top
   SOURCES
     src/top.sv
-    src/f_permutation.sv
-    src/keccak.sv
-    src/padder.sv
-    src/padder1.sv
-    src/rconst.sv
-    src/round.sv
-    src/sha.sv
-    src/uart.sv
+    src/md5.sv
     src/uart_rx.sv
     src/uart_tx.sv
 )

@@ -7,7 +7,10 @@ typedef enum logic [7:0] {
     READ_2,
     READ_3,
     BUSY,
-    PROCESS,
+    PROCESS_0,
+    PROCESS_1,
+    PROCESS_2,
+    PROCESS_3,
     SEND_OUT
 } State;
 
@@ -60,12 +63,30 @@ module top (
     );
     assign uo_out[7:1] = '0;
 
+    reg load_i; reg load_i_n;
+    reg new_text_i; reg new_text_i_n;
+    wire ready_o;
+    reg [127:0] data_i; reg [127:0] data_i_n;
+    wire [127:0] data_o;
+    
+    md5 md5_inst(
+        clk,
+        .reset(~rst),
+        load_i,
+        ready_o,
+        new_text_i,
+        data_i,
+        data_o
+    );
+            
+    
 
     State state = IDLE;
     State state_n;
 
-    reg [31:0] length = 0;
-    reg [31:0] length_n;
+    reg [7:0] length = 0;
+    reg [7:0] length_n;
+    reg [7:0] total; reg[7:0] total_n;
     reg start_flag;
     reg start_flag_n;
 
@@ -75,11 +96,21 @@ module top (
             tx_axis_tdata <= 0;
             tx_axis_tvalid <= 0;
             state <= IDLE;
+            load_i <= 0;
+            new_text_i <= 0;
+            data_i <= 0;
+            length <= 0;
+            total <= 0;
         end else begin
             state <= state_n;
             rx_axis_tready <= rx_axis_tready_n;
             tx_axis_tdata <= tx_axis_tdata_n;
             tx_axis_tvalid <= tx_axis_tvalid_n;
+            load_i <= load_i_n;
+            new_text_i <= new_text_i_n;
+            data_i <= data_i_n;
+            length <= length_n;
+            total <= total_n;
         end
     end
 
@@ -88,53 +119,47 @@ module top (
         rx_axis_tready_n = rx_axis_tready;
         tx_axis_tdata_n = tx_axis_tdata;
         tx_axis_tvalid_n = tx_axis_tvalid;
-
+        data_i_n = data_i;
+        new_text_i_n = new_text_i;
+        load_i_n = load_i;
+        length_n = length;     
+        total_n = total;
         case (state)
             IDLE: begin
                 rx_axis_tready_n = 1;
+                length_n = 8'd16; 
                 state_n = READ_0;
             end
 
             READ_0: begin
-                if (rx_axis_tvalid) begin
-                    rx_axis_tready_n = 0;
-                    state_n = READ_1;
-                end else begin
-                    rx_axis_tready_n = 1;
+                if(total == 0) begin
+                    total_n = rx_axis_tdata;
+                    state_n = IDLE;
                 end
+                else if(length > 0) begin
+                    if (rx_axis_tvalid) begin
+                        rx_axis_tready_n = 0;
+                        data_i_n[(length*8)-1-:8] = rx_axis_tdata;
+                        length_n = length - 1;
+                    end
+                end else if (length == 0) begin 
+                    state_n = PROCESS_0;
+                    load_i_n = 1;
+                    total_n = total - 1;
+                end 
             end
-
-            READ_1: begin
-                if (rx_axis_tvalid) begin
-                    rx_axis_tready_n = 0;
-                    state_n = READ_2;
+            
+            PROCESS_0: begin
+                load_i_n = 0;
+                if(total == 0) begin 
+                    state_n = PROCESS_1;
                 end else begin
-                    rx_axis_tready_n = 1;
+                    state_n = IDLE;
                 end
-            end
-
-            READ_2: begin
-                if (rx_axis_tvalid) begin
-                    rx_axis_tready_n = 0;
-                    state_n = READ_3;
-                end else begin
-                    rx_axis_tready_n = 1;
-                end
-            end
-
-            READ_3: begin
-                if (rx_axis_tvalid) begin
-                    rx_axis_tready_n = 0;
-                    state_n = PROCESS;
-                end else begin
-                    rx_axis_tready_n = 1;
-                end
-            end
-
-            PROCESS: begin
             end
 
             BUSY: begin
+                load_i_n=0;
             end
 
             SEND_OUT: begin

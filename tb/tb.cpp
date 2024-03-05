@@ -162,15 +162,29 @@ auto main() -> int {
         send_byte(step, dut, (word >> 0) & 0xff);
     };
 
-    // send length
-    send_word(0x0000'0002);
-    step(100);
-
-    // data
-    send_word(0x1111'1111);
-    step(100);
-    send_word(0x2222'2222);
-    step(100);
-
-    while (!step()) {}
+    // send total
+    send_byte(step, dut, 0x04);
+    // send part one
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    // send part two
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    // send part three
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    // send part four
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    
+    step(20000);
+    //while (!step()) {}
 }

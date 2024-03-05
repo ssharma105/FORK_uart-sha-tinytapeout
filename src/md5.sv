@@ -265,7 +265,7 @@ begin
             next_round64 = 0;
         end
 
-        if (!getdata_state) begin
+        if (getdata_state == 3'b0) begin
             next_ar = A;
             next_br = B;
             next_cr = C;
