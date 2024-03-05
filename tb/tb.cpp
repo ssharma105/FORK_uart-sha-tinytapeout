@@ -185,6 +185,30 @@ auto main() -> int {
     send_word(0x6161'6161);
     send_word(0x6161'6161);
     
+    fmt::println("NEW ENTRY");
+    step(20000);
+    
+    send_byte(step, dut, 0x04);
+    // send part one
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    // send part two
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    // send part three
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    // send part four
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
+    send_word(0x6161'6161);
     step(20000);
     //while (!step()) {}
 }

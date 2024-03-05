@@ -130,10 +130,12 @@ module top (
                 rx_axis_tready_n = 1;
                 length_n = 8'd16;
                 state_n = READ_0;
+                newtext_i_n = 0;
             end
 
             READ_0: begin
-                if (total == 0) begin
+                rx_axis_tready_n = 0;
+                if(total == 0) begin
                     total_n = rx_axis_tdata;
                     state_n = IDLE;
                 end else if (length > 0) begin
@@ -143,7 +145,8 @@ module top (
                         length_n = length - 1;
                     end
                 end else if (length == 0) begin
-                    state_n  = PROCESS_0;
+                    rx_axis_tready_n = 0; 
+                    state_n = PROCESS_0;
                     load_i_n = 1;
                     total_n  = total - 1;
                 end
@@ -155,6 +158,7 @@ module top (
                     state_n  = BUSY;
                     length_n = 16;
                 end else begin
+                    length_n = 16;
                     state_n = READ_0;
                     rx_axis_tready_n = 1;
                 end
@@ -163,17 +167,20 @@ module top (
             BUSY: begin
                 if (ready_o) begin
                     state_n = SEND_OUT;
+                    length_n = 16;
                     data_o_capture_n = data_o;
                 end
             end
 
             SEND_OUT: begin
-                if (tx_axis_tready && length > 0) begin
+                tx_axis_tvalid_n = 0;
+                if(tx_axis_tready && length > 0) begin 
                     tx_axis_tdata_n = data_o_capture[(length*8)-1-:8];
                     tx_axis_tvalid_n = 1;
                     length_n = length - 1;
                 end else if (length == 0) begin
                     tx_axis_tvalid_n = 0;
+                    newtext_i_n = 1;
                     state_n = IDLE;
                 end else begin
                     tx_axis_tvalid_n = 0;
