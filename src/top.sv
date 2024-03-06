@@ -1,9 +1,9 @@
-`default_nettype none `timescale 100ns / 100ns
+`default_nettype none
 
 module top (
-    input wire clk,
-    input wire [7:0] ui_in,
-    output wire [7:0] uo_out
+    input var clk,
+    input var [7:0] ui_in,
+    output var [7:0] uo_out
 );
     wire rst = ui_in[7];
     wire uclk = ui_in[6] ? ui_in[5] : clk;
@@ -11,6 +11,8 @@ module top (
     // UPDATE ME!!!! 130 for 10Mhz, 260 for 20Mhz, 1302 for 100MHz
     wire [15:0] prescale_base = 130;
     wire [15:0] prescale = ui_in[4] ? 1 : prescale_base;
+
+    assign uo_out[7:1] = 0;
 
     sha_top wrapped (
         .clk(uclk),
@@ -21,25 +23,22 @@ module top (
     );
 endmodule
 
-module sha_top (
-    input wire clk,
-    input wire rxd,
-    input wire rst,
-    output wire txd,
-    input wire [15:0] prescale
-);
-    parameter bit [7:0] IDLE = 0;
-    parameter bit [7:0] READ_0 = 1;
-    parameter bit [7:0] READ_1 = 2;
-    parameter bit [7:0] READ_2 = 3;
-    parameter bit [7:0] READ_3 = 4;
-    parameter bit [7:0] BUSY = 5;
-    parameter bit [7:0] PROCESS_0 = 6;
-    parameter bit [7:0] PROCESS_1 = 7;
-    parameter bit [7:0] PROCESS_2 = 8;
-    parameter bit [7:0] PROCESS_3 = 9;
-    parameter bit [7:0] SEND_OUT = 10;
+typedef enum logic [7:0] {
+    IDLE,
+    READ,
+    BUSY,
+    PROCESS_0,
+    PROCESS_1,
+    SEND
+} State;
 
+module sha_top (
+    input var clk,
+    input var rxd,
+    input var rst,
+    output var txd,
+    input var [15:0] prescale
+);
     // RX UART Data Signals
     wire [7:0] rx_axis_tdata;
     wire rx_axis_tvalid;
@@ -76,14 +75,11 @@ module sha_top (
         .busy(tx_busy)
     );
 
-    reg init;
-    reg init_n;
-    reg next;
-    reg next_n;
-
+    reg init, init_n;
+    reg next, next_n;
     reg [511:0] block, block_n;
-
     reg [127:0] data_o_capture, data_o_capture_n;
+
     wire ready;
     wire [159:0] digest;
     wire digest_valid;
@@ -99,12 +95,12 @@ module sha_top (
         .digest_valid
     );
 
-    reg [7:0] state = IDLE, state_n;
-    reg [7:0] length = 0, length_n;
+    State state, state_n;
+    reg [7:0] length, length_n;
     reg [159:0] digest_capture, digest_capture_n;
 
     `define reset(var, val) \
-        always@(posedge clk) \
+        always_ff @(posedge clk) \
             if (rst) var <= val; \
             else var <= var``_n;
 
@@ -118,7 +114,7 @@ module sha_top (
     `reset(block, 0)
     `reset(digest_capture, 0)
 
-    always @(*) begin
+    always_comb begin
         state_n = state;
         rx_axis_tready_n = rx_axis_tready;
         tx_axis_tdata_n = tx_axis_tdata;
@@ -136,17 +132,17 @@ module sha_top (
             IDLE: begin
                 rx_axis_tready_n = 1;
                 length_n = 8'd64;
-                state_n = READ_0;
+                state_n = READ;
                 init_n = 0;
             end
 
-            READ_0: begin
+            READ: begin
                 rx_axis_tready_n = 1;
                 if ((length > 0) & rx_axis_tvalid) begin
                     block_n[(length*8)-1-:8] = rx_axis_tdata;
                     rx_axis_tready_n = 0;
                     length_n = length - 1;
-                    state_n = READ_0;
+                    state_n = READ;
                 end else if (length == 0) begin
                     state_n = PROCESS_0;
                 end
@@ -165,13 +161,13 @@ module sha_top (
 
             BUSY: begin
                 if (ready) begin
-                    state_n = SEND_OUT;
+                    state_n = SEND;
                     digest_capture_n = digest;
                     length_n = 20;
                 end
             end
 
-            SEND_OUT: begin
+            SEND: begin
                 tx_axis_tvalid_n = 0;
                 if (tx_axis_tready && ~tx_axis_tvalid && length > 0 && ~tx_busy) begin
                     tx_axis_tdata_n = digest_capture[(length*8)-1-:8];
