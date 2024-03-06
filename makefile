@@ -19,8 +19,6 @@ USB_PRODUCT ?= 6146
 
 SOURCES     := $(shell find $(SRC)/ -type f -name '*.sv' -or -name '*.v')
 
-CXXFLAGS += -std=c++23
-
 ifndef VERBOSE
 .SILENT:
 SILENT_SUBMAKE := -MAKEFLAGS --silent
@@ -82,8 +80,8 @@ $(BUILD)/user_config.tcl: $(SOURCES) | $(BUILD)/
 	cat <<- EOF > $@
 		set ::env(DESIGN_NAME) "$(TOP)"
 		set ::env(VERILOG_FILES) "$(SOURCES:%=/work/%)"
-		set ::env(DIE_AREA) "0 0 334.88 225.76"
-		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/2x2_pg.def"
+		set ::env(DIE_AREA) "0 0 682.64 225.76"
+		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/4x2_pg.def"
 	EOF
 
 $(BUILD)/config.tcl: $(RSC)/config.tcl | $(BUILD)/
@@ -102,4 +100,3 @@ $(BUILD)/latest/results/final/gds/$(TOP).gds: $(BUILD)/user_config.tcl $(BUILD)/
 		$(OPENLANE_IMAGE_NAME) \
 		/bin/bash -c \
 		"./flow.tcl -overwrite -design /work/$(BUILD) -run_path /work/$(BUILD) -tag latest"
-

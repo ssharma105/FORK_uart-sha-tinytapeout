@@ -58,14 +58,28 @@ class byte_reader {
 class read_tb {
     byte_reader r;
     u32 last_read_pos = -1;
+    usize idx = 0;
 
     static constexpr u32 timeout = 16 * 10 * 2;
+
+    // last 0x00 shouldn't actually be sent, just there to catch extra at end
+    static constexpr auto expected = std::array{
+        0xA9, 0x99, 0x3E, 0x36, 0x47, 0x06, 0x81, 0x6A, 0xBA, 0x3E, 0x25,
+        0x71, 0x78, 0x50, 0xC2, 0x6C, 0x9C, 0xD0, 0xD8, 0x9D, 0x00,
+    };
 
    public:
     // returns true when timeout
     auto resume(const Vtop& dut) -> bool {
         if (auto b = r.resume(dut)) {
-            fmt::println("===== data: 0x{:02X} =====", *b);
+            auto exp = expected[std::min(idx, expected.size() - 1)];
+            fmt::println(
+                "data: 0x{:02X} (exp. 0x{:02x}){}",
+                *b,
+                exp,
+                *b == exp ? "" : " FAIL"
+            );
+            idx++;
             last_read_pos = sim_time;
         }
 
@@ -95,7 +109,7 @@ void set(u8& byte, u8 bit, bool val) {
     byte |= (val ? 1 : 0) << bit;
 }
 
-void send_byte(auto&& step, Vtop& dut, u8 data) {
+void send_byte_(auto&& step, Vtop& dut, u8 data) {
     // start bit
     set(dut.ui_in, 0, false);
     step(8);
@@ -155,60 +169,22 @@ auto main() -> int {
 
     step(20);
 
+    auto send_byte = [&](u8 byte) { send_byte_(step, dut, byte); };
     auto send_word = [&](u32 word) {
-        send_byte(step, dut, (word >> 24) & 0xff);
-        send_byte(step, dut, (word >> 16) & 0xff);
-        send_byte(step, dut, (word >> 8) & 0xff);
-        send_byte(step, dut, (word >> 0) & 0xff);
+        send_byte((word >> 24) & 0xff);
+        send_byte((word >> 16) & 0xff);
+        send_byte((word >> 8) & 0xff);
+        send_byte((word >> 0) & 0xff);
     };
 
-    // send total
-    send_byte(step, dut, 0x04);
-    // send part one
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    // send part two
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    // send part three
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    // send part four
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    
-    fmt::println("NEW ENTRY");
-    step(20000);
-    
-    send_byte(step, dut, 0x04);
-    // send part one
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    // send part two
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    // send part three
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    // send part four
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    send_word(0x6161'6161);
-    step(20000);
-    //while (!step()) {}
+    send_byte('a');
+    send_byte('b');
+    send_byte('c');
+    send_byte(0x80);
+    for (auto _ = 0; _ < 59; ++_) {
+        send_byte(0);
+    }
+    send_byte(0x18);
+
+    while (!step()) {}
 }
