@@ -29,9 +29,9 @@ verilate(
   VERILATOR_ARGS -x-assign fast
   TOP_MODULE top
   SOURCES
-    src/top.v
-    src/sha1_wmem.v
-    src/sha_core.v
+    src/top.sv
+    src/sha1_wmem.sv
+    src/sha_core.sv
     src/uart_rx.sv
     src/uart_tx.sv
 )

@@ -5,11 +5,15 @@
 #include <iomanip>
 #include <iostream>
 #include <optional>
+#include <random>
 
 #include <verilated_vcd_c.h>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
+
+#include "sha1.h"
 
 u32 sim_time = 0;
 
@@ -62,23 +66,27 @@ class read_tb {
 
     static constexpr u32 timeout = 16 * 10 * 2;
 
-    // last 0x00 shouldn't actually be sent, just there to catch extra at end
-    static constexpr auto expected = std::array{
-        0xA9, 0x99, 0x3E, 0x36, 0x47, 0x06, 0x81, 0x6A, 0xBA, 0x3E, 0x25,
-        0x71, 0x78, 0x50, 0xC2, 0x6C, 0x9C, 0xD0, 0xD8, 0x9D, 0x00,
-    };
+    std::array<u8, 20> expected;
 
    public:
+    bool good = true;
+
+    void set_expected(std::array<u8, 20> exp) {
+        good = true;
+        idx = 0;
+        expected = exp;
+    }
+
     // returns true when timeout
     auto resume(const Vtop& dut) -> bool {
         if (auto b = r.resume(dut)) {
-            auto exp = expected[std::min(idx, expected.size() - 1)];
-            fmt::println(
-                "data: 0x{:02X} (exp. 0x{:02x}){}",
-                *b,
-                exp,
-                *b == exp ? "" : " FAIL"
-            );
+            auto exp = expected.at(idx);
+            if (*b != exp) {
+                good = false;
+                fmt::println(
+                    "FAIL at {}: recv 0x{:02X}, exp 0x{:02X}", sim_time, *b, exp
+                );
+            }
             idx++;
             last_read_pos = sim_time;
         }
@@ -127,6 +135,55 @@ void send_byte_(auto&& step, Vtop& dut, u8 data) {
     step(8);
 }
 
+constexpr auto max_data_len = 55;
+void do_test(
+    std::random_device& rd,
+    auto&& step,
+    auto&& send_byte,
+    read_tb& r,
+    std::string_view data
+) {
+    assert(data.size() <= max_data_len);
+
+    auto sha = SHA1{};
+    sha.update(std::string{data});
+    r.set_expected(sha.final());
+
+    for (char ch : data) {
+        send_byte(ch);
+    }
+    send_byte(0x80);
+
+    auto num_padding = 64 - 1 - 4 - data.size();
+    assert(num_padding > 0);
+    for (auto _ = 0; _ < num_padding; ++_) {
+        send_byte(0x00);
+    }
+
+    auto num_bits = data.size() * 8;
+    send_byte(num_bits >> 24);
+    send_byte(num_bits >> 16);
+    send_byte(num_bits >> 8);
+    send_byte(num_bits >> 0);
+
+    step(200);
+    while (!step()) {}
+
+    fmt::println("{0:=^{1}} {2} {0:=^{1}}", "", 29, r.good ? "PASS" : "FAIL");
+    fmt::println("data (len {:2})\nat {}", data.size(), sim_time);
+
+    auto data_ = std::span(data);
+    const auto bpr = 16_usize;
+    while (!data_.empty()) {
+        const auto len = std::min(bpr, data_.size());
+        fmt::println("{::02X}", data_.first(len));
+        data_ = data_.subspan(len);
+    }
+    fmt::println("{0:-^{1}}", "", 29 * 2 + 4 + 2);
+
+    step(std::uniform_int_distribution(0, 1000)(rd));
+}
+
 auto main() -> int {
     const auto waveform_file = "build/waveform.vcd";
 
@@ -153,6 +210,7 @@ auto main() -> int {
 
         return timeout;
     };
+    auto send_byte = [&](u8 byte) { send_byte_(step, dut, byte); };
 
     auto def = input{
         .prescale = 1,
@@ -166,25 +224,27 @@ auto main() -> int {
 
     def.reset = 0;
     dut.ui_in = def;
-
     step(20);
 
-    auto send_byte = [&](u8 byte) { send_byte_(step, dut, byte); };
-    auto send_word = [&](u32 word) {
-        send_byte((word >> 24) & 0xff);
-        send_byte((word >> 16) & 0xff);
-        send_byte((word >> 8) & 0xff);
-        send_byte((word >> 0) & 0xff);
+    auto rd = std::random_device{};
+
+    auto test = [&](std::string_view str) {
+        do_test(rd, step, send_byte, r, str);
     };
+    test("abc");
+    test("def");
+    test("123");
+    test("abcdefghijklmnopqrstuvwxyz");
+    test("");
 
-    send_byte('a');
-    send_byte('b');
-    send_byte('c');
-    send_byte(0x80);
-    for (auto _ = 0; _ < 59; ++_) {
-        send_byte(0);
+    auto len_dist = std::uniform_int_distribution<u64>{0, max_data_len};
+    auto char_dist = std::uniform_int_distribution<u8>{0x00, 0xff};
+    for (auto _ = 0; _ < 20; ++_) {
+        auto len = len_dist(rd);
+        auto str = std::string(len, '\0');
+        for (auto i = 0; i < len; ++i) {
+            str[i] = char_dist(rd);
+        }
+        test(str);
     }
-    send_byte(0x18);
-
-    while (!step()) {}
 }
