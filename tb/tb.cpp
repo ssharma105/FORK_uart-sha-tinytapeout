@@ -141,6 +141,7 @@ void do_test(
     auto&& step,
     auto&& send_byte,
     read_tb& r,
+    bool print_pass,
     std::string_view data
 ) {
     assert(data.size() <= max_data_len);
@@ -168,6 +169,11 @@ void do_test(
 
     step(200);
     while (!step()) {}
+    step(std::uniform_int_distribution(0, 1000)(rd));
+
+    if (r.good && !print_pass) {
+        return;
+    }
 
     fmt::println("{0:=^{1}} {2} {0:=^{1}}", "", 29, r.good ? "PASS" : "FAIL");
     fmt::println("data (len {:2})\nat {}", data.size(), sim_time);
@@ -180,11 +186,9 @@ void do_test(
         data_ = data_.subspan(len);
     }
     fmt::println("{0:-^{1}}", "", 29 * 2 + 4 + 2);
-
-    step(std::uniform_int_distribution(0, 1000)(rd));
 }
 
-auto main() -> int {
+auto main(int argc, char** argv) -> int {
     const auto waveform_file = "build/waveform.vcd";
 
     auto dut = Vtop{};
@@ -229,7 +233,7 @@ auto main() -> int {
     auto rd = std::random_device{};
 
     auto test = [&](std::string_view str) {
-        do_test(rd, step, send_byte, r, str);
+        do_test(rd, step, send_byte, r, argc > 1, str);
     };
     test("abc");
     test("def");

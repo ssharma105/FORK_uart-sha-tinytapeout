@@ -114,6 +114,13 @@ module sha_top (
     `reset(block, 0)
     `reset(digest_capture, 0)
 
+    reg [4:0] free_counter;
+    always_ff @(posedge clk) free_counter <= free_counter + 1;
+    reg [8:0] lfsr;
+    always_ff @(posedge clk)
+        if (rst) lfsr <= 1;
+        else lfsr <= {lfsr[7:0], lfsr[7] ^ lfsr[4] ^ lfsr[3]};
+
     always_comb begin
         state_n = state;
         rx_axis_tready_n = rx_axis_tready;
@@ -145,6 +152,9 @@ module sha_top (
                     state_n = READ;
                 end else if (length == 0) begin
                     state_n = PROCESS_0;
+                    if (free_counter == 0) begin
+                        block_n[lfsr] ^= 1;
+                    end
                 end
 
             end

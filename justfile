@@ -16,5 +16,5 @@ build:
 
 alias r := run
 
-run: build
-    ./build/tb/{{ exe }}
+run *ARGS: build
+    ./build/tb/{{ exe }} {{ ARGS }}
