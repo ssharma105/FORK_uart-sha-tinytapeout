@@ -1,7 +1,8 @@
+*.swp
+*.vcd
+.DS_Store
 .direnv/
 .env
-build/
 .venv/
-.DS_Store
-runs
-*.swp
+.vscode
+build/
