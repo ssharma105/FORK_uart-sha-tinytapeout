@@ -1,4 +1,4 @@
-`![image](/gskip17/uart-sha-tinytapeout/docs/fangs_logo.png)`
+![image](https://github.com/gskip17/uart-sha-tinytapeout/docs/fangs_logo.png)
 ## How it works
 
 This design implements a SHA1 core with a UART controller that is used to send and recieve input and output to the core.
