@@ -30,7 +30,7 @@ pinout:
   ui[4]: "prescale_override"
   ui[5]: "user_clk"
   ui[6]: "clk_select"
-  ui[7]: ""
+  ui[7]: "reset"
 
   # Outputs
   uo[0]: "txd"

@@ -3,14 +3,16 @@
 module tt_um_fangs_uart_sha (
     input var  [7:0] ui_in,
     output var [7:0] uo_out,
+`ifndef FPGA
     input var  [7:0] uio_in,
     output var [7:0] uio_out,
     output var [7:0] uio_oe,
     input var        ena,
-    input var        clk,
-    input var        rst_n
+    input var        rst_n,
+`endif
+    input var        clk
 );
-    wire rst = !rst_n;
+    wire rst = ui_in[7];
     wire uclk = ui_in[6] ? ui_in[5] : clk;
 
     // UPDATE ME!!!! 130 for 10Mhz, 260 for 20Mhz, 1302 for 100MHz
@@ -18,6 +20,10 @@ module tt_um_fangs_uart_sha (
     wire [15:0] prescale = ui_in[4] ? 1 : prescale_base;
 
     assign uo_out[7:1] = 0;
+`ifndef FPGA
+    assign uio_out = '0;
+    assign uio_oe  = '0;
+`endif
 
     sha_top wrapped (
         .clk(uclk),

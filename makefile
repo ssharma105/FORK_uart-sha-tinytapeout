@@ -1,7 +1,7 @@
 SHELL := bash
 .ONESHELL:
 
-TOP     := top
+TOP     := tt_um_fangs_uart_sha
 TB_MAIN := tb
 
 SRC     := src
@@ -48,7 +48,7 @@ $(BUILD)/%/: | $(BUILD)/
 $(BUILD)/%.json: $(SOURCES) | $(BUILD)/
 	yosys \
 		-l $(BUILD)/yosys.log \
-		-DSYNTH \
+		-DSYNTH -DFPGA \
 		-p 'synth_ice40 -top $(basename $(notdir $@)) -json $@' \
 		$^
 
