@@ -1,7 +1,5 @@
 #include "preamble.h"
 
-#include "Vtop.h"
-
 #include <iomanip>
 #include <iostream>
 #include <optional>
@@ -13,6 +11,7 @@
 #include <fmt/ostream.h>
 #include <fmt/ranges.h>
 
+#include "Dut.h"
 #include "sha1.h"
 
 u32 sim_time = 0;
@@ -27,7 +26,7 @@ class byte_reader {
     static constexpr u32 steps_per_bit = 16;
 
    public:
-    auto resume(const Vtop& dut) -> std::optional<u8> {
+    auto resume(const Dut& dut) -> std::optional<u8> {
         switch (s) {
             case state::start:
                 if (!(dut.uo_out & 1)) {
@@ -78,7 +77,7 @@ class read_tb {
     }
 
     // returns true when timeout
-    auto resume(const Vtop& dut) -> bool {
+    auto resume(const Dut& dut) -> bool {
         if (auto b = r.resume(dut)) {
             auto exp = expected.at(idx);
             if (*b != exp) {
@@ -117,7 +116,7 @@ void set(u8& byte, u8 bit, bool val) {
     byte |= (val ? 1 : 0) << bit;
 }
 
-void send_byte_(auto&& step, Vtop& dut, u8 data) {
+void send_byte_(auto&& step, Dut& dut, u8 data) {
     // start bit
     set(dut.ui_in, 0, false);
     step(8);
@@ -191,7 +190,7 @@ void do_test(
 auto main(int argc, char** argv) -> int {
     const auto waveform_file = "build/waveform.vcd";
 
-    auto dut = Vtop{};
+    auto dut = Dut{};
 
     Verilated::traceEverOn(true);
     auto trace = VerilatedVcdC{};

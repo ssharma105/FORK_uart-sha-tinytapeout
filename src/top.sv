@@ -1,6 +1,6 @@
 `default_nettype none
 
-module top (
+module tt_um_fangs_uart_sha (
     input var clk,
     input var [7:0] ui_in,
     output var [7:0] uo_out

@@ -27,7 +27,8 @@ verilate(
   TRACE
   INCLUDE_DIRS "../make_tracing_c"
   VERILATOR_ARGS -x-assign fast
-  TOP_MODULE top
+  TOP_MODULE tt_um_fangs_uart_sha
+  PREFIX Dut
   SOURCES
     src/top.sv
     src/sha1_wmem.sv

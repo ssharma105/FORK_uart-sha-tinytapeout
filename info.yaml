@@ -12,7 +12,7 @@ project:
   language: "SystemVerilog"
   clock_hz: 10
   tiles: "4x2"
-  top_module: "top"
+  top_module: "tt_um_fangs_uart_sha"
   source_files:
     - uart_rx.sv
     - sha1_wmem.sv

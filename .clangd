@@ -1,6 +1,6 @@
 CompileFlags:
   Add:
-    - -I../build/tb/CMakeFiles/run_tb.dir/Vtop.dir/
+    - -I../build/tb/CMakeFiles/run_tb.dir/Dut.dir/
     - -I../build/tb/_deps/fmt-src/include/
     - -I../tb/fmt/include
     - -std=c++20
