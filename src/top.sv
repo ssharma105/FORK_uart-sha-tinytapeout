@@ -1,11 +1,16 @@
 `default_nettype none
 
 module tt_um_fangs_uart_sha (
-    input var clk,
-    input var [7:0] ui_in,
-    output var [7:0] uo_out
+    input var  [7:0] ui_in,
+    output var [7:0] uo_out,
+    input var  [7:0] uio_in,
+    output var [7:0] uio_out,
+    output var [7:0] uio_oe,
+    input var        ena,
+    input var        clk,
+    input var        rst_n
 );
-    wire rst = ui_in[7];
+    wire rst = !rst_n;
     wire uclk = ui_in[6] ? ui_in[5] : clk;
 
     // UPDATE ME!!!! 130 for 10Mhz, 260 for 20Mhz, 1302 for 100MHz

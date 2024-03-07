@@ -102,12 +102,10 @@ struct input {
     bool prescale;
     bool user_clk;
     bool clk_select;
-    bool reset;
     bool data;
 
     operator u8() {
-        return data | prescale << 4 | user_clk << 5 | clk_select << 6
-            | reset << 7;
+        return data | prescale << 4 | user_clk << 5 | clk_select << 6;
     }
 };
 
@@ -215,18 +213,15 @@ auto main(int argc, char** argv) -> int {
     };
     auto send_byte = [&](u8 byte) { send_byte_(step, dut, byte); };
 
-    auto def = input{
+    dut.ui_in = input{
         .prescale = 1,
         .clk_select = 0,
-        .reset = 1,
         .data = 1,
     };
-
-    dut.ui_in = def;
+    dut.rst_n = 0;
     step(10);
 
-    def.reset = 0;
-    dut.ui_in = def;
+    dut.rst_n = 1;
     step(20);
 
     auto rd = std::random_device{};
