@@ -84,7 +84,7 @@ $(BUILD)/user_config.tcl: $(SOURCES) | $(BUILD)/
 		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/4x2_pg.def"
 	EOF
 
-$(BUILD)/config.tcl: $(RSC)/config.tcl | $(BUILD)/
+$(BUILD)/config.tcl: $(SRC)/config.tcl | $(BUILD)/
 	cp $< $@
 
 gds: $(BUILD)/latest/results/final/gds/$(TOP).gds
