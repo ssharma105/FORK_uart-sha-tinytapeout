@@ -68,11 +68,4 @@ This circuit cannot create a running digest. It will only digest 512 bit message
 A UART FTDI cable or other alternative can be used to interact with the circuit's UART interface.
 
 A function generator can optionally be used to drive the external clock source. 
-
-## Hardware Trojan
-
-We implemented a "hardware trojan" into the design. Can you find it?
-
-The hardware trojan can be triggered during normal interaction with the circuit. 
-
-Occasionally you may recieve the wrong output. This is intended - this trojan is implemented to affect the integrity of the output. 
+ 
