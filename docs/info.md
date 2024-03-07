@@ -15,7 +15,7 @@ On the Tiny Tapeout motherboard, the pin connection is as follows:
 | ui_in[6]   | Clock Mux             |
 | ui_in[5]   | External Clock Source |
 | ui_in[4]   | Prescale Mux          |
-| ui_in[7]   | Reset (active high)   |
+| rst_in     | Reset (active low)   |
 
 ### Operation Description
 
