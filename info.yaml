@@ -1,36 +1,39 @@
 # Tiny Tapeout project information
 project:
-  title:        ""      # Project title
-  author:       ""      # Your name
-  discord:      ""      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  ""      # One line description of what your project does
-  language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     0       # Clock frequency in Hz (or 0 if not applicable)
-
-  # How many tiles your design occupies? A single tile is about 167x108 uM.
-  tiles: "1x1"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 6x2 or 8x2
-
-  # Your top module name must start with "tt_um_". Make it unique by including your github username:
-  top_module:  "tt_um_example"
-  
-  # List your project's source files here. Source files must be in ./src and you must list each source file separately, one per line:
-  source_files:        
-    - "project.v"
+  title: "uart_sha"
+  author:
+    - Grant Skipper
+    - Bryce Berger
+    - Shekhar Sharma
+  description: |
+    Input uart data on ui_in[0], output SHA1 hash on uo_out[0].
+    See testbench for padding format.
+    Contains a proof-of-concept time-based reliability trojan.
+  language: "SystemVerilog"
+  clock_hz: 10
+  tiles: "4x2"
+  top_module: "top"
+  source_files:
+    - uart_rx.sv
+    - sha1_wmem.sv
+    - top.sv
+    - uart_tx.sv
+    - sha_core.sv
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
   # Inputs
-  ui[0]: ""
+  ui[0]: "rxd"
   ui[1]: ""
   ui[2]: ""
   ui[3]: ""
-  ui[4]: ""
-  ui[5]: ""
-  ui[6]: ""
-  ui[7]: ""
+  ui[4]: "prescale_override"
+  ui[5]: "user_clk"
+  ui[6]: "clk_select"
+  ui[7]: "reset"
 
   # Outputs
-  uo[0]: ""
+  uo[0]: "txd"
   uo[1]: ""
   uo[2]: ""
   uo[3]: ""
