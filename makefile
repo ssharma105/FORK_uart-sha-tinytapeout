@@ -80,8 +80,8 @@ $(BUILD)/user_config.tcl: $(SOURCES) | $(BUILD)/
 	cat <<- EOF > $@
 		set ::env(DESIGN_NAME) "$(TOP)"
 		set ::env(VERILOG_FILES) "$(SOURCES:%=/work/%)"
-		set ::env(DIE_AREA) "0 0 682.64 225.76"
-		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/4x2_pg.def"
+		set ::env(DIE_AREA) "0 0 1030.40 225.76"
+		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/6x2_pg.def"
 	EOF
 
 $(BUILD)/config.tcl: $(SRC)/config.tcl | $(BUILD)/

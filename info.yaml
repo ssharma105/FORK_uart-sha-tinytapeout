@@ -11,7 +11,7 @@ project:
     Contains a proof-of-concept time-based reliability trojan.
   language: "SystemVerilog"
   clock_hz: 10
-  tiles: "4x2"
+  tiles: "6x2"
   top_module: "tt_um_fangs_uart_sha"
   source_files:
     - uart_rx.sv
