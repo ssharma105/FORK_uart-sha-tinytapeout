@@ -1,3 +1,4 @@
+![image](docs/fangs_logo.png)
 # Tiny Tapeout UART + SHA Submission Repo
 
 See see [info.md](docs/info.md) for information on the circuit and how it operates.
