@@ -82,6 +82,8 @@ $(BUILD)/user_config.tcl: $(SOURCES) | $(BUILD)/
 		set ::env(VERILOG_FILES) "$(SOURCES:%=/work/%)"
 		set ::env(DIE_AREA) "0 0 1030.40 225.76"
 		set ::env(FP_DIE_TEMPLATE) "$$DESIGN_DIR/../rsc/6x2_pg.def"
+		set ::env(ROUTING_CORES) "16"
+		set ::env(KLAYOUT_XOR_THREADS) "16"
 	EOF
 
 $(BUILD)/config.tcl: $(SRC)/config.tcl | $(BUILD)/
