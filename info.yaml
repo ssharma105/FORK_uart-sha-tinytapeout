@@ -8,7 +8,6 @@ project:
   description: |
     Input uart data on ui_in[0], output SHA1 hash on uo_out[0].
     See testbench for padding format.
-    Contains a proof-of-concept time-based reliability trojan.
   language: "SystemVerilog"
   clock_hz: 10
   tiles: "8x2"
