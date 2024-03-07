@@ -52,6 +52,8 @@ Immediately after sending the UART may recieve 20 Bytes of Hash digest output.
 
 As soon as the 20 Byte response is sent, the circuit becomes available to recieve new input. The entire transaction must be completed before new data can be consumed.
 
+`example.py` in docs folder contains a very basic script demonstrating a transaction.
+
 #### Reset
 
 At any time the circuit may be reset. After reset the circuit may recieve new data and begin a new transaction.
