@@ -9,7 +9,7 @@ project:
     Input uart data on ui_in[0], output SHA1 hash on uo_out[0].
     See testbench for padding format.
   language: "SystemVerilog"
-  clock_hz: 10
+  clock_hz: 0.5
   tiles: "8x2"
   top_module: "tt_um_fangs_uart_sha"
   source_files:
